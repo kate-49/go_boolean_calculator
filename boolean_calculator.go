@@ -1,7 +1,6 @@
 package go_boolean_calculator
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -11,37 +10,87 @@ type Calculator struct {
 	BoolInputs []bool
 }
 
-func (c Calculator) Run() bool {
-
-	fmt.Println("Input within the run function")
-	fmt.Println(c.Input)
-	fmt.Println("length")
-	fmt.Println(len(c.Input))
-	value, _ := strconv.ParseBool(c.Input[0])
-	return value
-}
-
 func CreateCalculator(input string) Calculator {
-	inputAsArray := strings.Split(input, ",")
+	inputAsArray := strings.Split(input, " ")
 	cal := Calculator{Input: inputAsArray}
-	cal.ConvertSingleValues(cal.Input)
 	return cal
 }
 
-func (c Calculator) ConvertSingleValues(input []string) {
-	value := false
+func (c *Calculator) Run() bool {
 
-	for i := 0; i < len(input); i++ {
-		fmt.Println(i, input[i])
-		if strings.Contains(input[i], "NOT") {
-			value = !strings.Contains(input[i], "TRUE")
-		} else if strings.Contains(input[i], "AND") {
-			value = !strings.Contains(input[i], "FALSE")
-		} else if strings.Contains(input[i], "OR") {
-			value = strings.Contains(input[i], "TRUE")
-		} else {
-			value = strings.Contains(input[i], "TRUE")
+	searchAbleElements := []string{"NOT", "OR", "AND"}
+	c.CalculateSoloValues()
+	for i := 0; i < len(searchAbleElements); i++ {
+		c.CalculateIndividualElements(searchAbleElements[i])
+	}
+	return c.GetFinalScore()
+}
+
+func (c *Calculator) CalculateIndividualElements(searchString string) {
+	for i := 0; i < len(c.Input); i++ {
+		if c.Input[i] == searchString {
+			switch searchString {
+			case "NOT":
+				value, _ := strconv.ParseBool(c.Input[i+1])
+				c.BoolInputs = append(c.BoolInputs, !value)
+			case "AND":
+				value := false
+				if c.Input[i-1] == c.Input[i+1] {
+					value, _ = strconv.ParseBool(c.Input[i+1])
+				}
+				c.BoolInputs = append(c.BoolInputs, value)
+			case "OR":
+				value := false
+				if (c.Input[i-1] == "TRUE") || (c.Input[i+1] == "TRUE") {
+					value = true
+				}
+				c.BoolInputs = append(c.BoolInputs, value)
+			}
 		}
-		c.BoolInputs = append(c.BoolInputs, value)
+	}
+}
+
+func (c *Calculator) ConvertToBoolAndAppend(element string) {
+	value, _ := strconv.ParseBool(element)
+	c.BoolInputs = append(c.BoolInputs, value)
+}
+
+func (c *Calculator) CalculateSoloValues() {
+	for i := 0; i < len(c.Input); i++ {
+		if i > 0 {
+			if c.Input[i-1] != "NOT" {
+				if (c.Input[i] == "TRUE") || (c.Input[i] == "FALSE") {
+					c.ConvertToBoolAndAppend(c.Input[i])
+				}
+			}
+		} else {
+			if (c.Input[i] == "TRUE") || (c.Input[i] == "FALSE") {
+				if i+1 < len(c.Input) {
+					if (c.Input[i+1] != "AND") && (c.Input[i+1] != "OR") {
+						c.ConvertToBoolAndAppend(c.Input[i])
+					}
+				} else {
+					c.ConvertToBoolAndAppend(c.Input[i])
+				}
+			}
+		}
+	}
+}
+
+func (c *Calculator) GetFinalScore() bool {
+	numberOfTrue := 0
+	numberOfFalse := 0
+	if len(c.BoolInputs) == 1 {
+		return c.BoolInputs[0]
+	} else {
+		for i := 0; i < len(c.BoolInputs); i++ {
+			if c.BoolInputs[i] == true {
+				numberOfTrue++
+			}
+			if c.BoolInputs[i] == false {
+				numberOfFalse++
+			}
+		}
+		return numberOfTrue >= numberOfFalse
 	}
 }
