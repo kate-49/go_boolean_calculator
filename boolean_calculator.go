@@ -11,6 +11,17 @@ type Calculator struct {
 }
 
 func CreateCalculator(input string) Calculator {
+	inputString1 := string
+	if strings.Contains(input, "(") {
+		indexOfFirstParenthesis := strings.Split(input, "(")
+		indexOfLastParenthesis := strings.Split(input, ")")
+		inputString1 = (input[indexOfFirstParenthesis+1], [indexOfFirstParenthesis])
+	}
+
+	//const inputStringForParenthesis = inputString.slice([inputString.indexOf("(")+1], [inputString.indexOf(")")])
+	//const restOfInputString = inputString.replace(inputStringForParenthesis, "");
+	//return [inputStringForParenthesis, restOfInputString.replace("()", "")]
+
 	inputAsArray := strings.Split(input, " ")
 	cal := Calculator{Input: inputAsArray}
 	return cal
