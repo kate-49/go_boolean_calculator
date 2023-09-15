@@ -6,13 +6,13 @@ import (
 )
 
 type Calculator struct {
-	Input         []string
-	Input2        []string
-	BoolFirstPass []bool
-	BoolInputs    []bool
-	Text          string
-	IndexElement1 int
-	IndexElement2 int
+	Input             []string
+	InputWithinParams []string
+	BoolFirstPass     []bool
+	BoolInputs        []bool
+	Text              string
+	IndexElement1     int
+	IndexElement2     int
 }
 
 func CreateCalculator(input string) Calculator {
@@ -33,11 +33,11 @@ func (c *Calculator) CalculateValuesForParenthesisSetup(input string) {
 	indexOfLastParenthesis := strings.Index(input, ")")
 	stringWithinParams = input[indexOfFirstParenthesis+1 : indexOfLastParenthesis]
 	restOfString = strings.ReplaceAll(input, input[indexOfFirstParenthesis:indexOfLastParenthesis+1], "")
-	c.Input2 = strings.Split(stringWithinParams, " ")
+	c.InputWithinParams = strings.Split(stringWithinParams, " ")
 	restOfString = strings.Trim(restOfString, " ")
 	c.Input = strings.Split(restOfString, " ")
 
-	c.IndexElement1 = strings.Index(c.Text, c.Input2[0])
+	c.IndexElement1 = strings.Index(c.Text, c.InputWithinParams[0])
 	c.IndexElement2 = strings.Index(c.Text, c.Input[0])
 }
 
@@ -51,8 +51,8 @@ func (c *Calculator) CalculateForArray(input []string, parenthesis bool) {
 }
 
 func (c *Calculator) Run() bool {
-	if len(c.Input2) > 0 {
-		c.CalculateForArray(c.Input2, true)
+	if len(c.InputWithinParams) > 0 {
+		c.CalculateForArray(c.InputWithinParams, true)
 		stringToAppend := ""
 		for i := 0; i < len(c.BoolFirstPass); i++ {
 			stringToAppend = strings.ToUpper(strconv.FormatBool(c.BoolFirstPass[i]))
@@ -70,43 +70,38 @@ func (c *Calculator) Run() bool {
 	return c.GetFinalScore()
 }
 
+func (c *Calculator) Append(value, parenthesis bool) {
+	if parenthesis {
+		c.BoolFirstPass = append(c.BoolInputs, value)
+	} else {
+		c.BoolInputs = append(c.BoolInputs, value)
+	}
+}
+
 func (c *Calculator) CalculateIndividualElements(searchString string, input []string, parenthesis bool) {
+	value := false
 	for i := 0; i < len(input); i++ {
 		if input[i] == searchString {
 			switch searchString {
 			case "NOT":
-				//if element not null after not
 				if input[i+1] != "" {
 					value, _ := strconv.ParseBool(input[i+1])
-					if parenthesis {
-						c.BoolFirstPass = append(c.BoolInputs, !value)
-					} else {
-						c.BoolInputs = append(c.BoolInputs, !value)
-					}
+					c.Append(!value, parenthesis)
 				}
 			case "AND":
-				value := false
 				if i+1 < len(input) {
 					if input[i-1] == input[i+1] {
 						value, _ = strconv.ParseBool(input[i+1])
 					}
-					if parenthesis {
-						c.BoolFirstPass = append(c.BoolInputs, value)
-					} else {
-						c.BoolInputs = append(c.BoolInputs, value)
-					}
+					c.Append(value, parenthesis)
+
 				}
 			case "OR":
-				value := false
 				if i+1 < len(input) {
 					if (input[i-1] == "TRUE") || (input[i+1] == "TRUE") {
 						value = true
 					}
-					if parenthesis {
-						c.BoolFirstPass = append(c.BoolInputs, value)
-					} else {
-						c.BoolInputs = append(c.BoolInputs, value)
-					}
+					c.Append(value, parenthesis)
 				}
 			}
 		}

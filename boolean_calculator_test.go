@@ -44,8 +44,6 @@ func Test_Longer_Inputs(t *testing.T) {
 
 		{Input: "(TRUE OR TRUE OR TRUE) AND FALSE", ExpectedOutput: false},
 		{Input: "NOT (TRUE AND TRUE)", ExpectedOutput: false},
-		//fails/
-		//{Input: "NOT (TRUE AND NOT FALSE)", ExpectedOutput: false},
 		{Input: "(NOT TRUE AND NOT FALSE) AND NOT TRUE", ExpectedOutput: false},
 		{Input: "(TRUE OR FALSE) AND NOT TRUE", ExpectedOutput: false},
 	}
