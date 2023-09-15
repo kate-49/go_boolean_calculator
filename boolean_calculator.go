@@ -27,7 +27,8 @@ func CreateCalculator(input string) Calculator {
 		fmt.Println("ros2")
 		fmt.Println(restOfString)
 		cal.Input2 = strings.Split(stringWithinParams, " ")
-		cal.Input = strings.Split(strings.Trim(restOfString, " "), " ")
+		restOfString = strings.Trim(restOfString, " ")
+		cal.Input = strings.Split(restOfString, " ")
 	} else {
 		cal.Input = strings.Split(input, " ")
 	}
@@ -67,23 +68,25 @@ func (c *Calculator) Run() bool {
 		fmt.Println(stringToAppend)
 
 		if indexElement1 > indexElement2 {
+			fmt.Println("1 bigger than 2")
 			fmt.Println(c.Input)
 			fmt.Println(stringToAppend)
 			c.Input = append(c.Input, stringToAppend)
 		} else {
+			fmt.Println("2 bigger than 1")
 			fmt.Println(stringToAppend)
 			fmt.Println(c.Input)
-			str := strings.Join(c.Input, ", ") + ", " + stringToAppend
+			str := stringToAppend + " " + strings.Join(c.Input, ",")
 			fmt.Println("str")
 			fmt.Println(str)
 			c.Input = strings.Split(str, " ")
 		}
-		fmt.Println("c.Input")
-		fmt.Println(c.Input)
 	}
-	fmt.Println("bool inputs after first run")
-	fmt.Println(c.BoolInputs)
+	fmt.Println("c.Input2")
+	fmt.Println(c.Input)
 	c.CalculateSoloValues(c.Input, false)
+	fmt.Println("after solo values")
+	fmt.Println(c.BoolInputs)
 	for i := 0; i < len(searchAbleElements); i++ {
 		c.CalculateIndividualElements(searchAbleElements[i], c.Input, false)
 	}
@@ -151,25 +154,50 @@ func (c *Calculator) ConvertToBoolAndAppend(element string, parenthesis bool) {
 
 func (c *Calculator) CalculateSoloValues(input []string, parenthesis bool) {
 	for i := 0; i < len(input); i++ {
+		fmt.Println(i)
+		fmt.Println(input[i])
 		if i > 0 {
+			fmt.Println("a")
 			if (input[i-1] != "NOT") && (input[i-1] != "AND") && (input[i-1] != "OR") {
+				fmt.Println("b")
+
 				if (input[i] == "TRUE") || (input[i] == "FALSE") {
+					fmt.Println("c")
+
 					if i+1 < len(input) {
+						fmt.Println("d")
+
 						if (input[i+1] != "AND") && (input[i+1] != "OR") {
+							fmt.Println("e c")
+
 							c.ConvertToBoolAndAppend(input[i], parenthesis)
 						}
 					} else {
-						c.ConvertToBoolAndAppend(input[i], parenthesis)
+						fmt.Println("f c")
+						fmt.Println("i - 1")
+						fmt.Println(input[i-1])
+						if (input[i-1] != "NOT") && (input[i-1] != "AND") && (input[i-1] != "OR") {
+							c.ConvertToBoolAndAppend(input[i], parenthesis)
+						}
 					}
 				}
 			}
 		} else {
+			fmt.Println("1b")
 			if (input[i] == "TRUE") || (input[i] == "FALSE") {
+				fmt.Println("2")
+
 				if i+1 < len(input) {
+					fmt.Println("3")
+
 					if (input[i+1] != "AND") && (input[i+1] != "OR") {
+						fmt.Println("4 c")
+
 						c.ConvertToBoolAndAppend(input[i], parenthesis)
 					}
 				} else {
+					fmt.Println("5 c")
+
 					c.ConvertToBoolAndAppend(input[i], parenthesis)
 				}
 			}
