@@ -1,87 +1,176 @@
 package go_boolean_calculator
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
 
 type Calculator struct {
-	Input      []string
-	BoolInputs []bool
+	Input         []string
+	Input2        []string
+	BoolFirstPass []bool
+	BoolInputs    []bool
+	Text          string
 }
 
 func CreateCalculator(input string) Calculator {
-	inputString1 := string
+	var stringWithinParams string
+	var restOfString string
+	cal := Calculator{Text: input}
+
 	if strings.Contains(input, "(") {
-		indexOfFirstParenthesis := strings.Split(input, "(")
-		indexOfLastParenthesis := strings.Split(input, ")")
-		inputString1 = (input[indexOfFirstParenthesis+1], [indexOfFirstParenthesis])
+		indexOfFirstParenthesis := strings.Index(input, "(")
+		indexOfLastParenthesis := strings.Index(input, ")")
+		stringWithinParams = input[indexOfFirstParenthesis+1 : indexOfLastParenthesis]
+		restOfString = strings.ReplaceAll(input, input[indexOfFirstParenthesis:indexOfLastParenthesis+1], "")
+		fmt.Println("ros2")
+		fmt.Println(restOfString)
+		cal.Input2 = strings.Split(stringWithinParams, " ")
+		cal.Input = strings.Split(strings.Trim(restOfString, " "), " ")
+	} else {
+		cal.Input = strings.Split(input, " ")
 	}
-
-	//const inputStringForParenthesis = inputString.slice([inputString.indexOf("(")+1], [inputString.indexOf(")")])
-	//const restOfInputString = inputString.replace(inputStringForParenthesis, "");
-	//return [inputStringForParenthesis, restOfInputString.replace("()", "")]
-
-	inputAsArray := strings.Split(input, " ")
-	cal := Calculator{Input: inputAsArray}
 	return cal
 }
 
 func (c *Calculator) Run() bool {
+	fmt.Println("input2")
+	fmt.Println(c.Input2)
+	fmt.Println("input1")
+	fmt.Println(c.Input)
 
 	searchAbleElements := []string{"NOT", "OR", "AND"}
-	c.CalculateSoloValues()
-	for i := 0; i < len(searchAbleElements); i++ {
-		c.CalculateIndividualElements(searchAbleElements[i])
+	if len(c.Input2) > 0 {
+		c.CalculateSoloValues(c.Input2, true)
+		for i := 0; i < len(searchAbleElements); i++ {
+			c.CalculateIndividualElements(searchAbleElements[i], c.Input2, true)
+		}
+		fmt.Println("bool first pass")
+		fmt.Println(c.BoolFirstPass)
+
+		//find out where original parenthesis was and convert this back to a string and put there
+		indexElement1 := strings.Index(c.Text, c.Input2[0])
+		indexElement2 := strings.Index(c.Text, c.Input[0])
+		fmt.Println("indexElement1")
+		fmt.Println(indexElement1)
+		fmt.Println("indexElement2")
+		fmt.Println(indexElement2)
+
+		stringToAppend := ""
+
+		for i := 0; i < len(c.BoolFirstPass); i++ {
+			stringToAppend = strings.ToUpper(strconv.FormatBool(c.BoolFirstPass[i]))
+		}
+
+		fmt.Println("stringToAppend")
+		fmt.Println(stringToAppend)
+
+		if indexElement1 > indexElement2 {
+			fmt.Println(c.Input)
+			fmt.Println(stringToAppend)
+			c.Input = append(c.Input, stringToAppend)
+		} else {
+			fmt.Println(stringToAppend)
+			fmt.Println(c.Input)
+			str := strings.Join(c.Input, ", ") + ", " + stringToAppend
+			fmt.Println("str")
+			fmt.Println(str)
+			c.Input = strings.Split(str, " ")
+		}
+		fmt.Println("c.Input")
+		fmt.Println(c.Input)
 	}
+	fmt.Println("bool inputs after first run")
+	fmt.Println(c.BoolInputs)
+	c.CalculateSoloValues(c.Input, false)
+	for i := 0; i < len(searchAbleElements); i++ {
+		c.CalculateIndividualElements(searchAbleElements[i], c.Input, false)
+	}
+	fmt.Println("bool inputs after second run")
+	fmt.Println(c.BoolInputs)
 	return c.GetFinalScore()
 }
 
-func (c *Calculator) CalculateIndividualElements(searchString string) {
-	for i := 0; i < len(c.Input); i++ {
-		if c.Input[i] == searchString {
+func (c *Calculator) CalculateIndividualElements(searchString string, input []string, parenthesis bool) {
+	for i := 0; i < len(input); i++ {
+		if input[i] == searchString {
 			switch searchString {
 			case "NOT":
-				value, _ := strconv.ParseBool(c.Input[i+1])
-				c.BoolInputs = append(c.BoolInputs, !value)
+				fmt.Println("not")
+				//if element not null after not
+				if input[i+1] != "" {
+					value, _ := strconv.ParseBool(input[i+1])
+					if parenthesis {
+						c.BoolFirstPass = append(c.BoolInputs, !value)
+					} else {
+						c.BoolInputs = append(c.BoolInputs, !value)
+					}
+				}
 			case "AND":
 				value := false
-				if c.Input[i-1] == c.Input[i+1] {
-					value, _ = strconv.ParseBool(c.Input[i+1])
+				if i+1 < len(input) {
+					fmt.Println(input[i-1] == input[i+1])
+					if input[i-1] == input[i+1] {
+						value, _ = strconv.ParseBool(input[i+1])
+					}
+					if parenthesis {
+						c.BoolFirstPass = append(c.BoolInputs, value)
+					} else {
+						c.BoolInputs = append(c.BoolInputs, value)
+					}
 				}
-				c.BoolInputs = append(c.BoolInputs, value)
 			case "OR":
 				value := false
-				if (c.Input[i-1] == "TRUE") || (c.Input[i+1] == "TRUE") {
-					value = true
+				fmt.Println("or")
+				if i+1 < len(input) {
+					fmt.Println("length ok")
+					if (input[i-1] == "TRUE") || (input[i+1] == "TRUE") {
+						value = true
+					}
+					fmt.Println(value)
+					if parenthesis {
+						c.BoolFirstPass = append(c.BoolInputs, value)
+					} else {
+						c.BoolInputs = append(c.BoolInputs, value)
+					}
 				}
-				c.BoolInputs = append(c.BoolInputs, value)
 			}
 		}
 	}
 }
 
-func (c *Calculator) ConvertToBoolAndAppend(element string) {
+func (c *Calculator) ConvertToBoolAndAppend(element string, parenthesis bool) {
 	value, _ := strconv.ParseBool(element)
-	c.BoolInputs = append(c.BoolInputs, value)
+	if parenthesis {
+		c.BoolFirstPass = append(c.BoolInputs, value)
+	} else {
+		c.BoolInputs = append(c.BoolInputs, value)
+	}
 }
 
-func (c *Calculator) CalculateSoloValues() {
-	for i := 0; i < len(c.Input); i++ {
+func (c *Calculator) CalculateSoloValues(input []string, parenthesis bool) {
+	for i := 0; i < len(input); i++ {
 		if i > 0 {
-			if c.Input[i-1] != "NOT" {
-				if (c.Input[i] == "TRUE") || (c.Input[i] == "FALSE") {
-					c.ConvertToBoolAndAppend(c.Input[i])
+			if (input[i-1] != "NOT") && (input[i-1] != "AND") && (input[i-1] != "OR") {
+				if (input[i] == "TRUE") || (input[i] == "FALSE") {
+					if i+1 < len(input) {
+						if (input[i+1] != "AND") && (input[i+1] != "OR") {
+							c.ConvertToBoolAndAppend(input[i], parenthesis)
+						}
+					} else {
+						c.ConvertToBoolAndAppend(input[i], parenthesis)
+					}
 				}
 			}
 		} else {
-			if (c.Input[i] == "TRUE") || (c.Input[i] == "FALSE") {
-				if i+1 < len(c.Input) {
-					if (c.Input[i+1] != "AND") && (c.Input[i+1] != "OR") {
-						c.ConvertToBoolAndAppend(c.Input[i])
+			if (input[i] == "TRUE") || (input[i] == "FALSE") {
+				if i+1 < len(input) {
+					if (input[i+1] != "AND") && (input[i+1] != "OR") {
+						c.ConvertToBoolAndAppend(input[i], parenthesis)
 					}
 				} else {
-					c.ConvertToBoolAndAppend(c.Input[i])
+					c.ConvertToBoolAndAppend(input[i], parenthesis)
 				}
 			}
 		}
