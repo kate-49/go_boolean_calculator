@@ -76,7 +76,7 @@ func (c *Calculator) Run() bool {
 			fmt.Println("2 bigger than 1")
 			fmt.Println(stringToAppend)
 			fmt.Println(c.Input)
-			str := stringToAppend + " " + strings.Join(c.Input, ",")
+			str := stringToAppend + " " + strings.Join(c.Input, " ")
 			fmt.Println("str")
 			fmt.Println(str)
 			c.Input = strings.Split(str, " ")
